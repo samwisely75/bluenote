@@ -1,4 +1,4 @@
-# httpc-profiles
+# bluenote
 
 A flexible HTTP client library with profile-based configuration support for Rust.
 
@@ -18,7 +18,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-httpc-profiles = { version = "0.2.0", features = ["ini-profiles"] }
+bluenote = { version = "0.1.0", features = ["ini-profiles"] }
 ```
 
 ## Example Usage
@@ -26,7 +26,7 @@ httpc-profiles = { version = "0.2.0", features = ["ini-profiles"] }
 ### Loading a Profile and Making Requests
 
 ```rust
-use httpc_profiles::{HttpClient, IniProfileStore, HttpRequestArgs, UrlPath};
+use bluenote::{HttpClient, IniProfileStore, HttpRequestArgs, UrlPath};
 use std::collections::HashMap;
 
 // Define your request
