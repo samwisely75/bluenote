@@ -394,11 +394,11 @@ fn test_profile_file_path_environment_variable() {
     // Test default path
     std::env::remove_var("BLUENOTE_PROFILE");
     assert_eq!(get_profile_file_path(), "~/bluenote.profile");
-    
+
     // Test environment variable override
     std::env::set_var("BLUENOTE_PROFILE", "/custom/path/profile.ini");
     assert_eq!(get_profile_file_path(), "/custom/path/profile.ini");
-    
+
     // Clean up
     std::env::remove_var("BLUENOTE_PROFILE");
 }
@@ -408,7 +408,7 @@ fn test_ini_profile_store_default_constructor() {
     // Test that the default constructor uses the environment-aware path
     std::env::remove_var("BLUENOTE_PROFILE");
     let store = IniProfileStore::default();
-    
+
     // Should not panic when creating with default path
     let result = store.get_profile("nonexistent");
     assert!(result.is_ok());
