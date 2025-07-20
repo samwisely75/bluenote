@@ -1,11 +1,11 @@
 //! # HTTP Profiles Client Library
-//! 
+//!
 //! A flexible HTTP client library with profile-based configuration support.
-//! This library provides a clean interface for making HTTP requests with 
+//! This library provides a clean interface for making HTTP requests with
 //! configuration profiles that can be stored in INI files.
 //!
 //! ## Features
-//! 
+//!
 //! - **Profile-based configuration**: Store connection settings, headers, and authentication in profiles
 //! - **Multiple authentication methods**: Basic auth, custom headers, certificate-based auth
 //! - **Response decoding**: Automatic decompression and encoding detection
@@ -33,14 +33,14 @@
 //! # }
 //! ```
 
-pub mod http;
-pub mod url;
 pub mod decoder;
+pub mod http;
 pub mod ini;
+pub mod url;
 pub mod utils;
 
 // Re-export commonly used types
 pub use http::{HttpClient, HttpConnectionProfile, HttpRequestArgs, HttpResponse};
-pub use ini::{IniProfile, IniProfileStore, get_blank_profile, DEFAULT_INI_FILE_PATH};
-pub use url::{Url, UrlPath, Endpoint};
+pub use ini::{get_blank_profile, IniProfile, IniProfileStore, DEFAULT_INI_FILE_PATH};
+pub use url::{Endpoint, Url, UrlPath};
 pub use utils::Result;
