@@ -376,7 +376,7 @@ async fn test_different_http_methods() {
             }
             Err(_) => {
                 // Network errors are acceptable
-                println!("Method {} failed due to network (acceptable)", method);
+                println!("Method {method} failed due to network (acceptable)");
             }
         }
     }
@@ -385,8 +385,34 @@ async fn test_different_http_methods() {
 #[test]
 fn test_constants() {
     // Test that important constants are accessible
-    assert_eq!(DEFAULT_INI_FILE_PATH, "~/.blueline/profile");
+    assert_eq!(DEFAULT_INI_FILE_PATH, "~/bluenote.profile");
     assert!(!DEFAULT_INI_FILE_PATH.is_empty());
+}
+
+#[test]
+fn test_profile_file_path_environment_variable() {
+    // Test default path
+    std::env::remove_var("BLUENOTE_PROFILE");
+    assert_eq!(get_profile_file_path(), "~/bluenote.profile");
+    
+    // Test environment variable override
+    std::env::set_var("BLUENOTE_PROFILE", "/custom/path/profile.ini");
+    assert_eq!(get_profile_file_path(), "/custom/path/profile.ini");
+    
+    // Clean up
+    std::env::remove_var("BLUENOTE_PROFILE");
+}
+
+#[test]
+fn test_ini_profile_store_default_constructor() {
+    // Test that the default constructor uses the environment-aware path
+    std::env::remove_var("BLUENOTE_PROFILE");
+    let store = IniProfileStore::default();
+    
+    // Should not panic when creating with default path
+    let result = store.get_profile("nonexistent");
+    assert!(result.is_ok());
+    assert!(result.unwrap().is_none());
 }
 
 #[tokio::test]

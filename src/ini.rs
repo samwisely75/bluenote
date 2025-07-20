@@ -7,8 +7,15 @@ use anyhow::{anyhow, Context};
 use ini::{Ini, Properties};
 use std::collections::HashMap;
 
-pub const DEFAULT_INI_FILE_PATH: &str = "~/.blueline/profile";
+pub const DEFAULT_INI_FILE_PATH: &str = "~/bluenote.profile";
 pub const PROFILE_BLANK: &str = "none";
+
+/// Get the profile file path, checking environment variable first, then falling back to default
+pub fn get_profile_file_path() -> String {
+    std::env::var_os("BLUENOTE_PROFILE")
+        .and_then(|val| val.into_string().ok())
+        .unwrap_or_else(|| DEFAULT_INI_FILE_PATH.to_string())
+}
 
 const INI_HOST: &str = "host";
 const INI_USER: &str = "user";
@@ -102,6 +109,11 @@ impl IniProfileStore {
     pub fn new(file_path: &str) -> Self {
         let file_path = shellexpand::tilde(file_path).to_string();
         Self { file_path }
+    }
+
+    /// Create a new IniProfileStore using the default profile path or BLUENOTE_PROFILE environment variable
+    pub fn with_default_path() -> Self {
+        Self::new(&get_profile_file_path())
     }
 
     pub fn get_profile(&self, name: &str) -> Result<Option<IniProfile>> {
@@ -213,6 +225,12 @@ impl IniProfileStore {
         })?;
 
         Ok(())
+    }
+}
+
+impl Default for IniProfileStore {
+    fn default() -> Self {
+        Self::with_default_path()
     }
 }
 

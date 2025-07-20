@@ -41,6 +41,6 @@ pub mod utils;
 
 // Re-export commonly used types
 pub use http::{HttpClient, HttpConnectionProfile, HttpRequestArgs, HttpResponse};
-pub use ini::{get_blank_profile, IniProfile, IniProfileStore, DEFAULT_INI_FILE_PATH};
+pub use ini::{get_blank_profile, get_profile_file_path, IniProfile, IniProfileStore, DEFAULT_INI_FILE_PATH};
 pub use url::{Endpoint, Url, UrlPath};
 pub use utils::Result;
