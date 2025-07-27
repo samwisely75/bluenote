@@ -35,6 +35,7 @@ pub struct HttpResponse {
     headers: HeaderMap,
     body: String,
     json: Option<serde_json::Value>,
+    duration_ms: u64,
 }
 
 impl HttpResponse {
@@ -52,6 +53,10 @@ impl HttpResponse {
 
     pub fn json(&self) -> Option<&serde_json::Value> {
         self.json.as_ref()
+    }
+
+    pub fn duration_ms(&self) -> u64 {
+        self.duration_ms
     }
 }
 
@@ -87,6 +92,8 @@ impl HttpClient {
     }
 
     pub async fn request(&self, args: &impl HttpRequestArgs) -> Result<HttpResponse> {
+        let start_time = std::time::Instant::now();
+
         // Build a request
         let req = self
             .build_request(args)
@@ -120,11 +127,14 @@ impl HttpClient {
             None
         };
 
+        let duration_ms = start_time.elapsed().as_millis() as u64;
+
         Ok(HttpResponse {
             status,
             headers,
             body: body_string,
             json,
+            duration_ms,
         })
     }
 
@@ -413,6 +423,7 @@ mod tests {
             headers: HeaderMap::new(),
             body: "test body".to_string(),
             json: Some(serde_json::json!({"test": "value"})),
+            duration_ms: 100,
         };
 
         assert_eq!(response.status(), StatusCode::OK);
@@ -436,6 +447,7 @@ mod tests {
             headers: headers.clone(),
             body: "test response".to_string(),
             json: Some(serde_json::json!({"key": "value"})),
+            duration_ms: 250,
         };
 
         assert_eq!(response.status(), StatusCode::OK);
@@ -452,6 +464,7 @@ mod tests {
             headers: HeaderMap::new(),
             body: "Not found".to_string(),
             json: None,
+            duration_ms: 50,
         };
 
         assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -617,6 +630,7 @@ mod tests {
                 headers: HeaderMap::new(),
                 body: expected_body.to_string(),
                 json: None,
+                duration_ms: 100,
             };
 
             assert_eq!(response.status(), status);

@@ -1,6 +1,6 @@
 [package]
 name = "bluenote"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Sam Wisely <samwisely75@gmail.com>"]
 description = "Profile-based HTTP client library with configuration management"
 edition = "2021"
