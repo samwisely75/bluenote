@@ -8,6 +8,7 @@ use reqwest::{
     Certificate, Client, Method, Request, StatusCode,
 };
 use std::collections::HashMap;
+use std::error::Error;
 use std::fmt::Debug;
 
 const DEFAULT_METHOD: &str = "GET";
@@ -116,8 +117,48 @@ impl HttpClient {
         let res = match self.client.execute(req).await {
             Ok(response) => response,
             Err(e) => {
-                tracing::error!("HTTP request execution failed: {}", e);
-                return Err(anyhow::anyhow!("Failed to execute HTTP request: {}", e));
+                // Extract more detailed error information
+                let error_msg = if e.is_connect() {
+                    format!("Connection failed: {e}")
+                } else if e.is_timeout() {
+                    format!("Request timed out: {e}")
+                } else if e.is_builder() {
+                    format!("Request builder error: {e}")
+                } else if e.is_redirect() {
+                    format!("Redirect error: {e}")
+                } else if e.is_request() {
+                    format!("Request error: {e}")
+                } else if e.is_body() {
+                    format!("Body error: {e}")
+                } else if e.is_decode() {
+                    format!("Decode error: {e}")
+                } else {
+                    format!("HTTP error: {e}")
+                };
+                
+                // Try to get the source chain for more context
+                let mut full_error = error_msg.clone();
+                if let Some(source) = e.source() {
+                    full_error.push_str(&format!("\n  Caused by: {source}"));
+                    let mut current_source = source.source();
+                    while let Some(src) = current_source {
+                        full_error.push_str(&format!("\n    -> {src}"));
+                        current_source = src.source();
+                    }
+                }
+                
+                // Check if this might be an SSL/TLS issue
+                let error_str = e.to_string().to_lowercase();
+                if error_str.contains("ssl") || error_str.contains("tls") || error_str.contains("certificate") {
+                    full_error.push_str("\n  Note: This appears to be an SSL/TLS certificate issue. Check if the server's certificate is valid.");
+                } else if error_str.contains("dns") || error_str.contains("resolve") {
+                    full_error.push_str("\n  Note: This appears to be a DNS resolution issue. Check if the hostname is correct and resolvable.");
+                } else if error_str.contains("connection refused") {
+                    full_error.push_str("\n  Note: Connection refused. Check if the server is running and accessible on the specified port.");
+                }
+                
+                tracing::error!("HTTP request execution failed: {}", full_error);
+                return Err(anyhow::anyhow!("{}", full_error));
             }
         };
 
