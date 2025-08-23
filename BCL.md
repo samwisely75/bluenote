@@ -9,24 +9,26 @@ GET /_cat/shards
 | FIXED                                  # Convert fixed-length to dataset
 | SELECT .node, .index, .shard, .prirep  # Limit the scope
 | SORT .node, .index, .prirep, .shard    # Sort dataset
-| SAVE ~/shards.csv IN CSV           # Save dataset to a file in CSV format
+| TSV                                    # Output in TSV format
 ```
 
 ```shell
-GET @profile1:/employees/_search         # Fetch employee data in JSON
-WITH BODY IN YAML                        # with passing query conditions
-  query:
+POST @profile1:/employees/_search        # Fetch employee data in JSON
+WITH BODY AS JSON                        # with passing query defined in YAML
+  query:                                 # and translated into JSON
     bool:
       must:
         - match:
             age: 30
         - term:
             employ_status: "employed"
-| SELECT hits.hits[] | ._source
-| POST @profile2:/expo/register
-  WITH BODY IN FORM
-      name: .name
-      email: .email
+  WITH HEADER Authorization = "ApiKey: ${API_KEY}" # Using special api key stored in the e/v
+| FOR hit IN hits.hits[]                           # Looping
+|| POST @profile2:/expo/register
+   WITH BODY IN FORM
+        fname: hit.first_name
+        lname: hit.last_name
+        email: hit.email
 ```
 
 ```shell

@@ -9,6 +9,7 @@ use reqwest::{
 };
 use std::collections::HashMap;
 use std::fmt::Debug;
+use tracing;
 
 const DEFAULT_METHOD: &str = "GET";
 
@@ -78,15 +79,21 @@ impl Debug for HttpClient {
 
 impl HttpClient {
     pub fn new(args: &impl HttpConnectionProfile) -> Result<Self> {
+        tracing::debug!("Creating HttpClient with profile: {:?}", args);
+        
+        let endpoint = args
+            .server()
+            .ok_or_else(|| {
+                anyhow::anyhow!("Endpoint cannot be empty when building HttpClient")
+            })?
+            .clone();
+        
+        tracing::info!("HttpClient endpoint: {}", endpoint);
+        
         let client = Self::build_client(args)?;
         Ok(HttpClient {
             client,
-            endpoint: args
-                .server()
-                .ok_or_else(|| {
-                    anyhow::anyhow!("Endpoint cannot be empty when building HttpClient")
-                })?
-                .clone(),
+            endpoint,
             user: args.user().cloned(),
             password: args.password().cloned(),
         })
@@ -94,11 +101,18 @@ impl HttpClient {
 
     pub async fn request(&self, args: &impl HttpRequestArgs) -> Result<HttpResponse> {
         let start_time = std::time::Instant::now();
+        
+        tracing::debug!("HTTP request - method: {:?}, url_path: {:?}", 
+            args.method(), args.url_path());
 
         // Build a request
         let req = self
             .build_request(args)
             .context("Failed to build HTTP request")?;
+        
+        tracing::info!("Executing HTTP request: {} {}", 
+            req.method(), req.url());
+        
         // contact the server and receive the response
         let res = self
             .client
@@ -144,7 +158,13 @@ impl HttpClient {
         let method_str = args.method().unwrap_or(&default_method);
         let method = Method::from_bytes(method_str.as_bytes())
             .with_context(|| format!("Invalid HTTP method '{method_str}'"))?;
+        
+        tracing::debug!("Building request - endpoint: {}, url_path: {:?}", 
+            self.endpoint, args.url_path());
+        
         let url = Url::new(Some(&self.endpoint), args.url_path()).to_string();
+        
+        tracing::debug!("Constructed URL: {}", url);
 
         let mut req_builder = self.client.request(method, url);
 
