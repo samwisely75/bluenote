@@ -4,27 +4,34 @@ Bluenote Composition Language (BCL) is an IMAGINARY, domain-specific language de
 
 ## Example
 
-```
+```shell
 GET /_cat/shards
-| SORT node, index, prirep, shard
-| SELECT node, index, shard, prirep
-| TO CSV
-| SAVE ~/shards.csv
+| FIXED                                  # Convert fixed-length to dataset
+| SELECT .node, .index, .shard, .prirep  # Limit the scope
+| SORT .node, .index, .prirep, .shard    # Sort dataset
+| SAVE ~/shards.csv IN CSV           # Save dataset to a file in CSV format
 ```
 
-```
-GET /employees
-| SELECT .employees[]
-| WHERE .age > 30 AND .employ_status == "active"
-| POST @profileB/expo/register
-WITH BODY IN FORM
-    name: .name
-    email: .email
+```shell
+GET @profile1:/employees/_search         # Fetch employee data in JSON
+WITH BODY IN YAML                        # with passing query conditions
+  query:
+    bool:
+      must:
+        - match:
+            age: 30
+        - term:
+            employ_status: "employed"
+| SELECT hits.hits[] | ._source
+| POST @profile2:/expo/register
+  WITH BODY IN FORM
+      name: .name
+      email: .email
 ```
 
-```
+```shell
 POST /_query
-| WITH YAML
+WITH BODY IN YAML
   query:
     bool:
       must:

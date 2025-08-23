@@ -60,6 +60,7 @@ impl HttpResponse {
     }
 }
 
+#[derive(Clone)]
 pub struct HttpClient {
     client: Client,
     endpoint: Endpoint,
