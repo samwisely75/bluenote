@@ -113,11 +113,13 @@ impl HttpClient {
             req.method(), req.url());
         
         // contact the server and receive the response
-        let res = self
-            .client
-            .execute(req)
-            .await
-            .context("Failed to execute HTTP request")?;
+        let res = match self.client.execute(req).await {
+            Ok(response) => response,
+            Err(e) => {
+                tracing::error!("HTTP request execution failed: {}", e);
+                return Err(anyhow::anyhow!("Failed to execute HTTP request: {}", e));
+            }
+        };
 
         // Acquire the response status and headers
         let headers = res.headers().clone();
