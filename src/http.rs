@@ -9,7 +9,6 @@ use reqwest::{
 };
 use std::collections::HashMap;
 use std::fmt::Debug;
-use tracing;
 
 const DEFAULT_METHOD: &str = "GET";
 
